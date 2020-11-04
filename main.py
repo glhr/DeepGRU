@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(description='DeepGRU Training')
 parser.add_argument('--dataset', metavar='DATASET_NAME',
                     choices=DataFactory.dataset_names,
                     help='dataset to train on: ' + ' | '.join(DataFactory.dataset_names),
-                    default='sbu')
+                    default='lh7')
 parser.add_argument('--seed', type=int, metavar='N',
                     help='random number generator seed, use "-1" for random seed',
                     default=1570254494)

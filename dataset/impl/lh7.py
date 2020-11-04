@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 import numpy as np
 
-from data.sbu.download_sbu import download_sbu
 from dataset.dataset import Dataset, HyperParameterSet
 from dataset.augmentation import AugRandomScale, AugRandomTranslation
 from dataset.impl.lowlevel import Sample, LowLevelDataset
@@ -10,15 +9,15 @@ from utils.logger import log
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-class DatasetSBUKinect(Dataset):
-    def __init__(self, root="data/sbu/SBU-Kinect-Interaction", num_synth=0):
-        super(DatasetSBUKinect, self).__init__("SBU-Kinect", root, num_synth)
+class DatasetLH7(Dataset):
+    def __init__(self, root="data/LH7", num_synth=0):
+        super(DatasetLH7, self).__init__("LH7", root, num_synth)
 
     def _load_underlying_dataset(self):
-        self.underlying_dataset = self._load_sbu_kinect_interaction(verbose=True)
-        self.num_features = 45  # 3D world coordinates joints of two people (15 joints x 3 dimensions).
+        self.underlying_dataset = self._load_lh7_interaction(verbose=True)
+        self.num_features = 27  # 3D world coordinates joints of two people (15 joints x 3 dimensions).
                                 # Each row is one person. Every two rows make up one frame.
-        self.num_folds = 5      # This dataset has 5 folds
+        self.num_folds = 2     # This dataset has 5 folds
 
     def get_hyperparameter_set(self):
         return HyperParameterSet(learning_rate=0.001,
@@ -32,7 +31,7 @@ class DatasetSBUKinect(Dataset):
             AugRandomTranslation(3, self.num_synth, random_seed, -1, 1),
         ]
 
-    def _load_sbu_kinect_interaction(self, unnormalize=True, verbose=False):
+    def _load_lh7_interaction(self, unnormalize=True, verbose=False):
         """
         Loads the SBU Kinect Interactions dataset. We unnormalize the raw data using the equations
         that are provided in the dataset's documentation.
@@ -42,30 +41,23 @@ class DatasetSBUKinect(Dataset):
         self._check_dataset()
 
         # Each action's label
-        LABELS = {"01": "Approaching",
-                  "02": "Departing",
-                  "03": "Kicking",
-                  "04": "Pushing",
-                  "05": "ShakingHands",
-                  "06": "Hugging",
-                  "07": "Exchanging",
-                  "08": "Punching"}
+        LABELS = {"1": "handover",
+                  "2": "working",
+                  "3": "distracted",
+                  "4": "terrified"}
 
         # Pre-set 5-fold cross validations from dataset's README
         # FOLD[i] means train on every other fold, test on fold i
         FOLDS = [
-            ["s01s02", "s03s04", "s05s02", "s06s04"],
-            ["s02s03", "s02s07", "s03s05", "s05s03"],
-            ["s01s03", "s01s07", "s07s01", "s07s03"],
-            ["s02s01", "s02s06", "s03s02", "s03s06"],
-            ["s04s02", "s04s03", "s04s06", "s06s02", "s06s03"]
+            [0, 50],
+            [0, 40]
         ]
 
         # Number of folds
         FOLD_CNT = len(FOLDS)
 
         # Number of joints
-        JOINT_CNT = 15
+        JOINT_CNT = 9
 
         # Using 5-fold cross validation as the predefined test
         # (e.g. train[0] test[0] mean test on FOLD[0], train on everything else)
@@ -77,7 +69,8 @@ class DatasetSBUKinect(Dataset):
             fname = str(fname)
 
             # Determine sample properties
-            subject, label, example = fname.replace(self.root, '').split('/')[-4:-1]
+            subject, label = fname.replace(self.root, '').split('/')[-3:-1]
+            example = fname.replace(self.root, '').split('/')[-1].split('.txt')[0]
 
             if verbose:
                 log("load: {}, label {}, subject {}, example {}".format(fname,
@@ -90,36 +83,36 @@ class DatasetSBUKinect(Dataset):
                 lines = f.read().splitlines()
 
             pts = []
-            body_pts = {0: [], 1: []}  # body index -> list of points in the entire sequence
+            body_pts = {0: []}  # body index -> list of points in the entire sequence
             framecount = len(lines)
 
             for idx, line in enumerate(lines):
-                line = line.split(',')[1:]  # Skip the frame number
+                line = line.split(',')
 
-                for body in range(2):
-                    pt = np.zeros(3 * JOINT_CNT, dtype=np.float32)
+                body = 0
+                pt = np.zeros(3 * JOINT_CNT, dtype=np.float32)
 
-                    # Read the (x, y, z) position of the joint of each person (2 people in each frame)
-                    for i in range(JOINT_CNT):
-                        pt[3 * i + 0] = float(line[(3 * body * JOINT_CNT) + (3 * i + 0)])
-                        pt[3 * i + 1] = float(line[(3 * body * JOINT_CNT) + (3 * i + 1)])
-                        pt[3 * i + 2] = float(line[(3 * body * JOINT_CNT) + (3 * i + 2)])
+                # Read the (x, y, z) position of the joint of each person (2 people in each frame)
+                for i in range(JOINT_CNT):
+                    pt[3 * i + 0] = float(line[(3 * body * JOINT_CNT) + (3 * i + 0)])
+                    pt[3 * i + 1] = float(line[(3 * body * JOINT_CNT) + (3 * i + 1)])
+                    pt[3 * i + 2] = float(line[(3 * body * JOINT_CNT) + (3 * i + 2)])
 
-                        # Unnormalize the joint positions if requested (formula's from dataset's README file)
-                        if unnormalize:
-                            pt[3 * i + 0] = (1280 - (pt[3 * i + 0] * 2560)) / 1000
-                            pt[3 * i + 1] = (960 - (pt[3 * i + 1] * 1920)) / 1000
-                            pt[3 * i + 2] = (pt[3 * i + 2] * 10000 / 7.8125) / 1000
+                    # Unnormalize the joint positions if requested (formula's from dataset's README file)
+                    if unnormalize:
+                        pt[3 * i + 0] = (1280 - (pt[3 * i + 0] * 2560)) / 1000
+                        pt[3 * i + 1] = (960 - (pt[3 * i + 1] * 1920)) / 1000
+                        pt[3 * i + 2] = (pt[3 * i + 2] * 10000 / 7.8125) / 1000
 
-                    body_pts[body] += [pt]
+                body_pts[body] += [pt]
 
             # Sanity check
-            for b_idx in range(2):
+            for b_idx in range(1):
                 assert len(body_pts[b_idx]) == framecount
 
             # Sort bodies based on activity (high-activity first)
             bodies_by_activity = sorted(body_pts.items(),
-                                        key=lambda item: DatasetSBUKinect._calculate_motion(np.asarray(item[1]),
+                                        key=lambda item: DatasetLH7._calculate_motion(np.asarray(item[1]),
                                                                                             JOINT_CNT), reverse=True)
 
             for f in range(framecount):
@@ -132,20 +125,18 @@ class DatasetSBUKinect(Dataset):
 
             # Add the index to train/test indices for each fold
             s_idx = len(samples) - 1
+            print(s_idx)
 
             for fold_idx in range(FOLD_CNT):
                 fold = FOLDS[fold_idx]
 
-                if subject in fold:
+                if int(example) > fold[-1]:
                     # Add the instance as a TESTING instance to this fold
                     test_indices[fold_idx] += [s_idx]
 
+                else:
                     # For all other folds, this guy would be a TRAINING instance
-                    for other_idx in range(FOLD_CNT):
-                        if fold_idx == other_idx:
-                            continue
-
-                        train_indices[other_idx] += [s_idx]
+                    train_indices[fold_idx] += [s_idx]
 
         # k-fold sanity check
         for fold_idx in range(FOLD_CNT):
@@ -157,8 +148,7 @@ class DatasetSBUKinect(Dataset):
 
     def _check_dataset(self):
         if not os.path.isdir(self.root):
-            log("Dataset files do not exist, downloading...")
-            download_sbu(self.root)
+            log("Dataset files do not exist :(")
 
     @staticmethod
     def _calculate_motion(np_pts, num_joints):
@@ -175,7 +165,7 @@ class DatasetSBUKinect(Dataset):
 
             pts = np_pts[:, joint_col_start:joint_col_end]
 
-            displacement = DatasetSBUKinect._series_len(pts)
+            displacement = DatasetLH7._series_len(pts)
             total_motion += displacement
             motion_per_joint += [displacement]
 

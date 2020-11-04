@@ -1,4 +1,5 @@
 from dataset.impl.sbu_kinect import DatasetSBUKinect
+from dataset.impl.lh7 import DatasetLH7
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -8,6 +9,7 @@ class DataFactory:
     """
     dataset_names = [
             'sbu',
+            'lh7'
         ]
 
     @staticmethod
@@ -21,5 +23,8 @@ class DataFactory:
 
         if dataset_name == "sbu":
             return DatasetSBUKinect(num_synth=num_synth)
+
+        if dataset_name == "lh7":
+            return DatasetLH7(num_synth=num_synth)
 
         raise Exception('Unknown dataset "{}"'.format(dataset_name))
