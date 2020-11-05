@@ -7,6 +7,9 @@ from dataset.augmentation import AugRandomScale, AugRandomTranslation
 from dataset.impl.lowlevel import Sample, LowLevelDataset
 from utils.logger import log
 
+import random
+random.seed(1570254494)
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 class DatasetLH7(Dataset):
@@ -15,9 +18,9 @@ class DatasetLH7(Dataset):
 
     def _load_underlying_dataset(self):
         self.underlying_dataset = self._load_lh7_interaction(verbose=True)
-        self.num_features = 27  # 3D world coordinates joints of two people (15 joints x 3 dimensions).
-                                # Each row is one person. Every two rows make up one frame.
-        self.num_folds = 1     # This dataset has 5 folds
+        self.num_features = 27  # 3D world coordinates joints of 1 person (9 joints x 3 dimensions).
+                                # Each row is one frame.
+        self.num_folds = 3     # This dataset has 3 folds
 
     def get_hyperparameter_set(self):
         return HyperParameterSet(learning_rate=0.001,
@@ -31,10 +34,9 @@ class DatasetLH7(Dataset):
             AugRandomTranslation(3, self.num_synth, random_seed, -1, 1),
         ]
 
-    def _load_lh7_interaction(self, unnormalize=True, verbose=False):
+    def _load_lh7_interaction(self, unnormalize=False, verbose=False):
         """
-        Loads the SBU Kinect Interactions dataset. We unnormalize the raw data using the equations
-        that are provided in the dataset's documentation.
+        Loads the LH7 dataset.
         """
 
         # Make sure the dataset exists
@@ -48,14 +50,8 @@ class DatasetLH7(Dataset):
 
         LABELS_INV = dict((v, k) for k, v in LABELS.items())
 
-        # Pre-set 5-fold cross validations from dataset's README
-        # FOLD[i] means train on every other fold, test on fold i
-        FOLDS = [
-            [0, 20]
-        ]
-
         # Number of folds
-        FOLD_CNT = len(FOLDS)
+        FOLD_CNT = 3
 
         # Number of joints
         JOINT_CNT = 9
@@ -70,8 +66,8 @@ class DatasetLH7(Dataset):
             fname = str(fname)
 
             # Determine sample properties
-            subject, label = fname.replace(self.root, '').split('/')[-1].split("-")[0:2]
-            example = fname.replace(self.root, '').split('/')[-1].split("-")[-1].split(".")[0]
+            subject, label, example = fname.replace(self.root, '').split('/')[-1].split("-")[0:3]
+            frame = fname.replace(self.root, '').split('/')[-1].split("-")[-1].split(".")[0]
             label = LABELS_INV[label]
 
             if verbose:
@@ -130,9 +126,8 @@ class DatasetLH7(Dataset):
             print(s_idx)
 
             for fold_idx in range(FOLD_CNT):
-                fold = FOLDS[fold_idx]
 
-                if int(example) > fold[-1]:
+                if not random.randint(0,4):
                     # Add the instance as a TESTING instance to this fold
                     test_indices[fold_idx] += [s_idx]
 

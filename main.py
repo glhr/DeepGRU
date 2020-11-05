@@ -115,7 +115,7 @@ def run_fold(dataset, fold_idx, use_cuda):
 
             train_accuracy = train_meter.avg
 
-            pierogi.plot_loss(epoch+1, 0, train_accuracy, "train")
+            pierogi.plot_loss(epoch+1, 0, loss_meter.avg, "train")
 
             if train_accuracy > best_train_accuracy:
                 best_train_accuracy = train_accuracy
@@ -139,7 +139,7 @@ def run_fold(dataset, fold_idx, use_cuda):
                     test_meter.update(accuracy, curr_batch_size)
 
                 test_accuracy = test_meter.avg
-                pierogi.plot_loss(epoch+1, 0, test_accuracy, "validation")
+                pierogi.plot_loss(epoch+1, 0, test_loss_meter.avg, "validation")
 
                 # Update best accuracies
                 if best_test_accuracy < test_accuracy:

@@ -138,6 +138,9 @@ class Dataset(data.Dataset):
         batch_size = self.get_hyperparameter_set().batch_size
 
         train_sampler, test_sampler = self._get_train_test_sampler(fold_idx, shuffle, random_seed, normalize)
+
+        print(f"Size: Training set {len(train_sampler)}, testing set {len(test_sampler)}")
+        
         train_loader = DataLoader(dataset=self,
                                   sampler=train_sampler,
                                   collate_fn=PadCollate(),
