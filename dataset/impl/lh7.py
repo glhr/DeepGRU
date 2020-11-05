@@ -44,13 +44,14 @@ class DatasetLH7(Dataset):
         LABELS = {"1": "handover",
                   "2": "working",
                   "3": "distracted",
-                  "4": "terrified"}
+                  "4": "waving"}
+
+        LABELS_INV = dict((v, k) for k, v in LABELS.items())
 
         # Pre-set 5-fold cross validations from dataset's README
         # FOLD[i] means train on every other fold, test on fold i
         FOLDS = [
-            [0, 50],
-            [0, 40]
+            [0, 20]
         ]
 
         # Number of folds
@@ -69,8 +70,9 @@ class DatasetLH7(Dataset):
             fname = str(fname)
 
             # Determine sample properties
-            subject, label = fname.replace(self.root, '').split('/')[-3:-1]
-            example = fname.replace(self.root, '').split('/')[-1].split('.txt')[0]
+            subject, label = fname.replace(self.root, '').split('/')[-1].split("-")[0:2]
+            example = fname.replace(self.root, '').split('/')[-1].split("-")[-1].split(".")[0]
+            label = LABELS_INV[label]
 
             if verbose:
                 log("load: {}, label {}, subject {}, example {}".format(fname,
