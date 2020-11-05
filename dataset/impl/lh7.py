@@ -17,13 +17,13 @@ class DatasetLH7(Dataset):
         self.underlying_dataset = self._load_lh7_interaction(verbose=True)
         self.num_features = 27  # 3D world coordinates joints of two people (15 joints x 3 dimensions).
                                 # Each row is one person. Every two rows make up one frame.
-        self.num_folds = 2     # This dataset has 5 folds
+        self.num_folds = 1     # This dataset has 5 folds
 
     def get_hyperparameter_set(self):
         return HyperParameterSet(learning_rate=0.001,
                                  batch_size=64,
                                  weight_decay=0,
-                                 num_epochs=200)
+                                 num_epochs=10)
 
     def _get_augmenters(self, random_seed):
         return [

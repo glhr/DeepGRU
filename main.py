@@ -144,6 +144,7 @@ def run_fold(dataset, fold_idx, use_cuda):
         if loss_meter.avg <= 1e-6 or best_test_accuracy == 100:
             break
 
+    torch.save(model.state_dict(), f'save/{dataset}-{time.time()}.pt')
     return best_test_accuracy
 
 
