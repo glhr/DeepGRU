@@ -10,6 +10,8 @@ from dataset.datafactory import DataFactory
 from utils.average_meter import AverageMeter  # Running average computation
 from utils.logger import log                  # Logging
 
+from pierogi.pierogi import Pierogi
+
 # ----------------------------------------------------------------------------------------------------------------------
 parser = argparse.ArgumentParser(description='DeepGRU Training')
 parser.add_argument('--dataset', metavar='DATASET_NAME',
@@ -85,66 +87,73 @@ def run_fold(dataset, fold_idx, use_cuda):
     best_train_accuracy = 0
     best_test_accuracy = 0
 
-    # Train the model
-    for epoch in range(hyperparameters.num_epochs):
-        loss_meter = AverageMeter()
-        train_meter = AverageMeter()
-        test_meter = AverageMeter()
+    with Pierogi() as pierogi:
+        pierogi.configure(nb_epochs=hyperparameters.num_epochs,
+                          nb_batches_per_epoch=len(train_loader))
+        # Train the model
+        for epoch in range(hyperparameters.num_epochs):
+            loss_meter = AverageMeter()
+            train_meter = AverageMeter()
+            test_meter = AverageMeter()
 
-        #
-        # Training loop
-        #
-        for batch in train_loader:
-            model.train()
-            optimizer.zero_grad()
-
-            accuracy, curr_batch_size, loss = run_batch(batch, model, criterion)
-
-            # Backward and optimize
-            loss.backward()
-            optimizer.step()
-
-            # Update stats
-            loss_meter.update(loss.item(), curr_batch_size)
-            train_meter.update(accuracy, curr_batch_size)
-
-        train_accuracy = train_meter.avg
-
-        if train_accuracy > best_train_accuracy:
-            best_train_accuracy = train_accuracy
-
-        log('Epoch: [{0}]'.format(epoch))
-        log('       [Avg Loss]          {loss.avg:.6f}'.format(loss=loss_meter))
-        log('       [Training]   Prec@1 {top1.avg:.6f} Max {max:.6f}'
-             .format(top1=train_meter, max=best_train_accuracy))
-
-        #
-        # Testing loop
-        #
-        model.eval()
-        with torch.no_grad():
-            test_loss_meter = AverageMeter()
-
-            for batch in test_loader:
+            #
+            # Training loop
+            #
+            for batch in train_loader:
+                model.train()
+                optimizer.zero_grad()
 
                 accuracy, curr_batch_size, loss = run_batch(batch, model, criterion)
-                test_loss_meter.update(loss.item(), curr_batch_size)
-                test_meter.update(accuracy, curr_batch_size)
 
-            test_accuracy = test_meter.avg
+                # Backward and optimize
+                loss.backward()
+                optimizer.step()
 
-            # Update best accuracies
-            if best_test_accuracy < test_accuracy:
-                best_test_accuracy = test_accuracy
+                # Update stats
+                loss_meter.update(loss.item(), curr_batch_size)
+                train_meter.update(accuracy, curr_batch_size)
 
-            log('       [Avg Loss]          {loss.avg:.6f}'.format(loss=test_loss_meter))
-            log('       [Validation] Prec@1 {top1:.6f} Max {max:.6f}'
-                 .format(top1=test_accuracy, max=best_test_accuracy))
+            train_accuracy = train_meter.avg
 
-        if loss_meter.avg <= 1e-6 or best_test_accuracy == 100:
-            break
+            pierogi.plot_loss(epoch+1, 0, train_accuracy, "train")
 
-    torch.save(model.state_dict(), f'save/{dataset}-{time.time()}.pt')
+            if train_accuracy > best_train_accuracy:
+                best_train_accuracy = train_accuracy
+
+            log('Epoch: [{0}]'.format(epoch))
+            log('       [Avg Loss]          {loss.avg:.6f}'.format(loss=loss_meter))
+            log('       [Training]   Prec@1 {top1.avg:.6f} Max {max:.6f}'
+                 .format(top1=train_meter, max=best_train_accuracy))
+
+            #
+            # Testing loop
+            #
+            model.eval()
+            with torch.no_grad():
+                test_loss_meter = AverageMeter()
+
+                for batch in test_loader:
+
+                    accuracy, curr_batch_size, loss = run_batch(batch, model, criterion)
+                    test_loss_meter.update(loss.item(), curr_batch_size)
+                    test_meter.update(accuracy, curr_batch_size)
+
+                test_accuracy = test_meter.avg
+                pierogi.plot_loss(epoch+1, 0, test_accuracy, "validation")
+
+                # Update best accuracies
+                if best_test_accuracy < test_accuracy:
+                    best_test_accuracy = test_accuracy
+
+                log('       [Avg Loss]          {loss.avg:.6f}'.format(loss=test_loss_meter))
+                log('       [Validation] Prec@1 {top1:.6f} Max {max:.6f}'
+                     .format(top1=test_accuracy, max=best_test_accuracy))
+
+            if loss_meter.avg <= 1e-6 or best_test_accuracy == 100:
+                break
+
+        torch.save(model.state_dict(), f'save/{dataset}-{time.time()}.pt')
+
     return best_test_accuracy
 
 
