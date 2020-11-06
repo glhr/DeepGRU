@@ -80,43 +80,7 @@ class DatasetLH7(Dataset):
             with open(fname) as f:
                 lines = f.read().splitlines()
 
-            pts = []
-            body_pts = {0: []}  # body index -> list of points in the entire sequence
-            framecount = len(lines)
-
-            for idx, line in enumerate(lines):
-                line = line.split(',')
-
-                body = 0
-                pt = np.zeros(3 * JOINT_CNT, dtype=np.float32)
-
-                # Read the (x, y, z) position of the joint of each person (2 people in each frame)
-                for i in range(JOINT_CNT):
-                    pt[3 * i + 0] = float(line[(3 * body * JOINT_CNT) + (3 * i + 0)])
-                    pt[3 * i + 1] = float(line[(3 * body * JOINT_CNT) + (3 * i + 1)])
-                    pt[3 * i + 2] = float(line[(3 * body * JOINT_CNT) + (3 * i + 2)])
-
-                    # Unnormalize the joint positions if requested (formula's from dataset's README file)
-                    if unnormalize:
-                        pt[3 * i + 0] = (1280 - (pt[3 * i + 0] * 2560)) / 1000
-                        pt[3 * i + 1] = (960 - (pt[3 * i + 1] * 1920)) / 1000
-                        pt[3 * i + 2] = (pt[3 * i + 2] * 10000 / 7.8125) / 1000
-
-                body_pts[body] += [pt]
-
-            # Sanity check
-            for b_idx in range(1):
-                assert len(body_pts[b_idx]) == framecount
-
-            # Sort bodies based on activity (high-activity first)
-            bodies_by_activity = sorted(body_pts.items(),
-                                        key=lambda item: DatasetLH7._calculate_motion(np.asarray(item[1]),
-                                                                                            JOINT_CNT), reverse=True)
-
-            for f in range(framecount):
-                for b_idx, bodys_frames in bodies_by_activity:
-                    pt = bodys_frames[f]
-                    pts += [pt]
+            pts = DatasetLH7._pnts_from_frames(lines, JOINT_CNT)
 
             # Make a sample
             samples += [Sample(pts, LABELS[label], subject, fname)]
@@ -181,3 +145,39 @@ class DatasetLH7(Dataset):
             ret += np.linalg.norm(pts[idx] - pts[idx - 1])
 
         return ret
+
+    @staticmethod
+    def _pnts_from_frames(lines,JOINT_CNT=9):
+        pts = []
+        body_pts = {0: []}  # body index -> list of points in the entire sequence
+        framecount = len(lines)
+
+        for idx, line in enumerate(lines):
+            line = line.split(',')
+
+            body = 0
+            pt = np.zeros(3 * JOINT_CNT, dtype=np.float32)
+
+            # Read the (x, y, z) position of the joint of each person (2 people in each frame)
+            for i in range(JOINT_CNT):
+                pt[3 * i + 0] = float(line[(3 * body * JOINT_CNT) + (3 * i + 0)])
+                pt[3 * i + 1] = float(line[(3 * body * JOINT_CNT) + (3 * i + 1)])
+                pt[3 * i + 2] = float(line[(3 * body * JOINT_CNT) + (3 * i + 2)])
+
+            body_pts[body] += [pt]
+
+        # Sanity check
+        for b_idx in range(1):
+            assert len(body_pts[b_idx]) == framecount
+
+        # Sort bodies based on activity (high-activity first)
+        bodies_by_activity = sorted(body_pts.items(),
+                                    key=lambda item: DatasetLH7._calculate_motion(np.asarray(item[1]),
+                                                                                        JOINT_CNT), reverse=True)
+
+        for f in range(framecount):
+            for b_idx, bodys_frames in bodies_by_activity:
+                pt = bodys_frames[f]
+                pts += [pt]
+
+        return pts

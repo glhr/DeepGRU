@@ -119,6 +119,8 @@ class Dataset(data.Dataset):
         self.class_to_idx = {ch: i for i, ch in enumerate(self.underlying_dataset.class_labels)}
         self.idx_to_class = {i: ch for i, ch in enumerate(self.underlying_dataset.class_labels)}
 
+        self.data_train_aggregate = self._get_aggregate_train_data()
+
     def _load_underlying_dataset(self):
         """
         Loads the underlying dataset that this class would interface with
@@ -140,7 +142,7 @@ class Dataset(data.Dataset):
         train_sampler, test_sampler = self._get_train_test_sampler(fold_idx, shuffle, random_seed, normalize)
 
         print(f"Size: Training set {len(train_sampler)}, testing set {len(test_sampler)}")
-        
+
         train_loader = DataLoader(dataset=self,
                                   sampler=train_sampler,
                                   collate_fn=PadCollate(),
@@ -155,6 +157,68 @@ class Dataset(data.Dataset):
                                  num_workers=4)
 
         return train_loader, test_loader
+
+    def get_sample_loaders(self, sample, random_seed=1223, normalize=True):
+        batch_size = self.get_hyperparameter_set().batch_size
+
+        single_sampler = self._get_single_sampler(sample, random_seed, normalize)
+
+        sample_loader = DataLoader(dataset=self,
+                                 sampler=single_sampler,
+                                 collate_fn=PadCollate(),
+                                 batch_size=1,
+                                 pin_memory=True,
+                                 num_workers=4)
+
+        return sample_loader
+
+    def _get_aggregate_train_data(self):
+        aggregate_data = []
+        train, test = self.underlying_dataset.get_indices_for_fold(0, True, None)
+        for idx, sample in enumerate(train):
+            pts, class_name = sample.to_numpy()
+            aggregate_data.append(pts)
+        return aggregate_data
+
+
+    def _get_single_sampler(self, fname, random_seed=None, normalize=True):
+
+        aggregate_data = self.data_train_aggregate
+        sample_indices = []
+        self._cache = []
+
+        with open(fname) as f:
+            lines = f.read().splitlines()
+
+        pts = self._pnts_from_frames(lines)
+        pts = np.array(pts, dtype=np.float32)
+
+        # Convert to PyTorch tensor
+        result = torch.from_numpy(pts)
+
+        subject, label, example = str(fname).split('/')[-1].split("-")[0:3]
+        label = torch.from_numpy(np.asarray(self.class_to_idx[label]))
+        self._cache += [(result, label, False, fname)]
+        sample_indices += [len(self) - 1]
+
+        # Do appropriate z-score normalization if requested
+        if normalize:
+            # Calculate the mean/stdev
+            aggregate_data = np.concatenate(aggregate_data)
+            avg = np.average(aggregate_data, axis=0)
+            std = np.std(aggregate_data, axis=0, dtype=np.float32)
+            std[std == 0] = 1
+
+            indices = list(range(len(self)))  # To account for synthetic samples that were added too
+
+            for i in indices:
+                sample, label, is_synth, sample_path = self[i]
+                pt = sample.numpy()
+                new_pt = (pt - avg) / std
+                self._cache[i] = (torch.from_numpy(new_pt), label, is_synth, sample_path)
+
+        return SubsetRandomSampler(sample_indices)
+
 
     def _get_train_test_sampler(self, fold_idx, shuffle, random_seed=None, normalize=False):
         """

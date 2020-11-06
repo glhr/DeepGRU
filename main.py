@@ -181,6 +181,8 @@ def run_batch(batch, model, criterion):
     return accuracy, curr_batch_size, loss
 
 
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 if __name__ == '__main__':
     main()
