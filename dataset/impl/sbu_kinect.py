@@ -2,11 +2,11 @@ import os
 from pathlib import Path
 import numpy as np
 
-from data.sbu.download_sbu import download_sbu
-from dataset.dataset import Dataset, HyperParameterSet
-from dataset.augmentation import AugRandomScale, AugRandomTranslation
-from dataset.impl.lowlevel import Sample, LowLevelDataset
-from utils.logger import log
+from DeepGRU.data.sbu.download_sbu import download_sbu
+from DeepGRU.dataset.dataset import Dataset, HyperParameterSet
+from DeepGRU.dataset.augmentation import AugRandomScale, AugRandomTranslation
+from DeepGRU.dataset.impl.lowlevel import Sample, LowLevelDataset
+from DeepGRU.utils.logger import log
 
 
 # ----------------------------------------------------------------------------------------------------------------------

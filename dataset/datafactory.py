@@ -1,5 +1,5 @@
-from dataset.impl.sbu_kinect import DatasetSBUKinect
-from dataset.impl.lh7 import DatasetLH7
+from DeepGRU.dataset.impl.sbu_kinect import DatasetSBUKinect
+from DeepGRU.dataset.impl.lh7 import DatasetLH7
 
 
 # ----------------------------------------------------------------------------------------------------------------------

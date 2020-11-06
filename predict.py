@@ -5,10 +5,12 @@ import time
 import torch
 import torch.nn as nn
 
-from model import DeepGRU
-from dataset.datafactory import DataFactory
-from utils.average_meter import AverageMeter  # Running average computation
-from utils.logger import log                  # Logging
+from DeepGRU.model import DeepGRU
+from DeepGRU.dataset.datafactory import DataFactory
+from DeepGRU.utils.average_meter import AverageMeter  # Running average computation
+from DeepGRU.utils.logger import log                  # Logging
+
+from DeepGRU.utils.utils import get_path_from_root
 
 from pathlib import Path
 import copy
@@ -42,14 +44,16 @@ torch.manual_seed(seed)
 
 hyperparameters = dataset.get_hyperparameter_set()
 
-model_path="save/model.pt"
+model_path = get_path_from_root("save/model.pt")
 model = DeepGRU(dataset.num_features, dataset.num_classes)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.load_state_dict(copy.deepcopy(torch.load(model_path,device)))
+if use_cuda:
+    model = torch.nn.DataParallel(model).cuda()
 model.eval()
 
 
-def predict_single(batch, model):
+def predict_single(batch, model, eval=False):
     """
     Runs the forward pass on a batch and computes the loss and accuracy
     """
@@ -63,32 +67,34 @@ def predict_single(batch, model):
 
     # Compute the accuracy
     predicted = outputs.argmax(1)
-    correct = (predicted == labels).sum().item()
-    curr_batch_size = labels.size(0)
-    accuracy = correct / 1 * 100.0
 
-    out = "correct" if accuracy > 0 else "nope"
-    print(f"--> Predicted {dataset.idx_to_class[predicted.item()]}, expected {dataset.idx_to_class[labels[0].item()]} -> {out}")
+    if eval:
+        correct = (predicted == labels).sum().item()
+        curr_batch_size = labels.size(0)
+        accuracy = correct / 1 * 100.0
 
-    return accuracy
+        out = "correct" if accuracy > 0 else "nope"
+        print(f"--> Predicted {dataset.idx_to_class[predicted.item()]}, expected {dataset.idx_to_class[labels[0].item()]} -> {out}")
+        return accuracy
+    else:
+        print(f"--> Predicted {dataset.idx_to_class[predicted.item()]}")
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def run_inference(file, model):
+def run_inference(input):
+    global model
     """
     Runs the model on a given sample
     """
 
-    if use_cuda:
-        model = torch.nn.DataParallel(model).cuda()
-
     # Create data loaders
-    sample_loader = dataset.get_sample_loaders(file)
+    sample_loader = dataset.get_sample_loaders(input)
 
     for batch in sample_loader:
-        print(file)
+        if isinstance(input,str): print(file)
         predicted = predict_single(batch, model)
 
-print(dataset.idx_to_class)
-for file in Path(dataset.root).glob('**/*.txt'):
-    run_inference(file, model)
+if __name__ == 'main':
+    print(dataset.idx_to_class)
+    for file in Path(dataset.root).glob('**/*.txt'):
+        run_inference(str(file))

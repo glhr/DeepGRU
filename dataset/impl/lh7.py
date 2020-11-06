@@ -2,18 +2,19 @@ import os
 from pathlib import Path
 import numpy as np
 
-from dataset.dataset import Dataset, HyperParameterSet
-from dataset.augmentation import AugRandomScale, AugRandomTranslation
-from dataset.impl.lowlevel import Sample, LowLevelDataset
-from utils.logger import log
+from DeepGRU.dataset.dataset import Dataset, HyperParameterSet
+from DeepGRU.dataset.augmentation import AugRandomScale, AugRandomTranslation
+from DeepGRU.dataset.impl.lowlevel import Sample, LowLevelDataset
+from DeepGRU.utils.logger import log
 
 import random
 random.seed(1570254494)
 
+from DeepGRU.utils.utils import get_path_from_root
 
 # ----------------------------------------------------------------------------------------------------------------------
 class DatasetLH7(Dataset):
-    def __init__(self, root="data/LH7", num_synth=0):
+    def __init__(self, root=get_path_from_root("data/LH7"), num_synth=0):
         super(DatasetLH7, self).__init__("LH7", root, num_synth)
 
     def _load_underlying_dataset(self):
@@ -152,7 +153,8 @@ class DatasetLH7(Dataset):
         framecount = len(lines)
 
         for idx, line in enumerate(lines):
-            line = line.split(',')
+            if isinstance(line, str):
+                line = line.split(',')
 
             body = 0
             pt = np.zeros(3 * JOINT_CNT, dtype=np.float32)

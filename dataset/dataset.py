@@ -6,7 +6,7 @@ import torch.utils.data as data
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
 
-from utils.logger import log
+from DeepGRU.utils.logger import log
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -181,14 +181,19 @@ class Dataset(data.Dataset):
         return aggregate_data
 
 
-    def _get_single_sampler(self, fname, random_seed=None, normalize=True):
+    def _get_single_sampler(self, input, random_seed=None, normalize=True):
 
         aggregate_data = self.data_train_aggregate
         sample_indices = []
         self._cache = []
 
-        with open(fname) as f:
-            lines = f.read().splitlines()
+        if isinstance(input, str):
+            txt = True
+            with open(input) as f:
+                lines = f.read().splitlines()
+        else:
+            txt = False
+            lines = input
 
         pts = self._pnts_from_frames(lines)
         pts = np.array(pts, dtype=np.float32)
@@ -196,9 +201,13 @@ class Dataset(data.Dataset):
         # Convert to PyTorch tensor
         result = torch.from_numpy(pts)
 
-        subject, label, example = str(fname).split('/')[-1].split("-")[0:3]
-        label = torch.from_numpy(np.asarray(self.class_to_idx[label]))
-        self._cache += [(result, label, False, fname)]
+        if txt:
+            subject, label, example = str(fname).split('/')[-1].split("-")[0:3]
+            label = torch.from_numpy(np.asarray(self.class_to_idx[label]))
+        else:
+            subject, label, example = "", "", ""
+
+        self._cache += [(result, label, False, input if txt else "")]
         sample_indices += [len(self) - 1]
 
         # Do appropriate z-score normalization if requested
