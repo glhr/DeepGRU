@@ -48,6 +48,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model.load_state_dict(copy.deepcopy(torch.load(model_path,device)))
 model.eval()
 
+
 def predict_single(batch, model):
     """
     Runs the forward pass on a batch and computes the loss and accuracy
@@ -67,7 +68,7 @@ def predict_single(batch, model):
     accuracy = correct / 1 * 100.0
 
     out = "correct" if accuracy > 0 else "nope"
-    print(f"--> Predicted {predicted.item()}, expected {labels[0]} -> {out}")
+    print(f"--> Predicted {dataset.idx_to_class[predicted.item()]}, expected {dataset.idx_to_class[labels[0].item()]} -> {out}")
 
     return accuracy
 
@@ -88,6 +89,6 @@ def run_inference(file, model):
         print(file)
         predicted = predict_single(batch, model)
 
-
+print(dataset.idx_to_class)
 for file in Path(dataset.root).glob('**/*.txt'):
     run_inference(file, model)

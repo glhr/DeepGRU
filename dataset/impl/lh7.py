@@ -17,7 +17,7 @@ class DatasetLH7(Dataset):
         super(DatasetLH7, self).__init__("LH7", root, num_synth)
 
     def _load_underlying_dataset(self):
-        self.underlying_dataset = self._load_lh7_interaction(verbose=True)
+        self.underlying_dataset = self._load_lh7_interaction(verbose=False)
         self.num_features = 27  # 3D world coordinates joints of 1 person (9 joints x 3 dimensions).
                                 # Each row is one frame.
         self.num_folds = 3     # This dataset has 3 folds
@@ -87,7 +87,6 @@ class DatasetLH7(Dataset):
 
             # Add the index to train/test indices for each fold
             s_idx = len(samples) - 1
-            print(s_idx)
 
             for fold_idx in range(FOLD_CNT):
 
