@@ -47,10 +47,13 @@ def predict_single(batch, model, eval=False):
         examples = examples.cuda()
 
     # Forward and loss computation
-    outputs = model(examples, lengths)
+    output = nn.functional.softmax(model(examples, lengths),dim=1)
 
     # Compute the accuracy
-    predicted = outputs.argmax(1)
+    ret, predicted = torch.max(output.data, 1)
+    top_p, top_class = output.topk(1, dim = 1)
+    conf = top_p.item()
+    cls = dataset.idx_to_class[top_class.item()]
 
     if eval:
         correct = (predicted == labels).sum().item()
@@ -58,11 +61,11 @@ def predict_single(batch, model, eval=False):
         accuracy = correct / 1 * 100.0
 
         out = "correct" if accuracy > 0 else "nope"
-        print(f"--> Predicted {dataset.idx_to_class[predicted.item()]}, expected {dataset.idx_to_class[labels[0].item()]} -> {out}")
+        print(f"--> Predicted {cls}, expected {dataset.idx_to_class[labels[0].item()]} -> {out}")
         return accuracy
     else:
-        print(f"--> Predicted {dataset.idx_to_class[predicted.item()]}")
-        return dataset.idx_to_class[predicted.item()]
+        print(f"--> Predicted {cls} (conf {conf})")
+        return {'label': cls, 'conf': conf}
 
 
 # ----------------------------------------------------------------------------------------------------------------------
