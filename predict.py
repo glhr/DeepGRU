@@ -15,29 +15,13 @@ from DeepGRU.utils.utils import get_path_from_root
 from pathlib import Path
 import copy
 
-# ----------------------------------------------------------------------------------------------------------------------
-parser = argparse.ArgumentParser(description='DeepGRU Training')
-parser.add_argument('--dataset', metavar='DATASET_NAME',
-                    choices=DataFactory.dataset_names,
-                    help='dataset to train on: ' + ' | '.join(DataFactory.dataset_names),
-                    default='lh7')
-parser.add_argument('--seed', type=int, metavar='N',
-                    help='random number generator seed, use "-1" for random seed',
-                    default=1570254494)
-parser.add_argument('--num-synth', type=int, metavar='N',
-                    help='number of synthetic samples to generate',
-                    default=1)
-parser.add_argument('--use-cuda', action='store_true',
-                    help='use CUDA if available',
-                    default=True)
+seed = 1570254494
+use_cuda = torch.cuda.is_available()
+dataset = 'lh7'
+num_synth = 1
 
-# ----------------------------------------------------------------------------------------------------------------------
-args = parser.parse_args()
-seed = int(time.time()) if args.seed == -1 else args.seed
-use_cuda = torch.cuda.is_available() and args.use_cuda
-
-log.set_dataset_name(args.dataset)
-dataset = DataFactory.instantiate(args.dataset, args.num_synth)
+log.set_dataset_name(dataset)
+dataset = DataFactory.instantiate(dataset, num_synth)
 log.log_dataset(dataset)
 log("Random seed: " + str(seed))
 torch.manual_seed(seed)
@@ -78,6 +62,7 @@ def predict_single(batch, model, eval=False):
         return accuracy
     else:
         print(f"--> Predicted {dataset.idx_to_class[predicted.item()]}")
+        return dataset.idx_to_class[predicted.item()]
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -89,12 +74,38 @@ def run_inference(input):
 
     # Create data loaders
     sample_loader = dataset.get_sample_loaders(input)
-
+    predicted = []
     for batch in sample_loader:
         if isinstance(input,str): print(file)
-        predicted = predict_single(batch, model)
+        predicted.append(predict_single(batch, model))
+
+    return predicted
 
 if __name__ == 'main':
+    # ----------------------------------------------------------------------------------------------------------------------
+    parser = argparse.ArgumentParser(description='DeepGRU Training')
+    parser.add_argument('--dataset', metavar='DATASET_NAME',
+                        choices=DataFactory.dataset_names,
+                        help='dataset to train on: ' + ' | '.join(DataFactory.dataset_names),
+                        default='lh7')
+    parser.add_argument('--seed', type=int, metavar='N',
+                        help='random number generator seed, use "-1" for random seed',
+                        default=1570254494)
+    parser.add_argument('--num-synth', type=int, metavar='N',
+                        help='number of synthetic samples to generate',
+                        default=1)
+    parser.add_argument('--use-cuda', action='store_true',
+                        help='use CUDA if available',
+                        default=True)
+
+    # ----------------------------------------------------------------------------------------------------------------------
+    args = parser.parse_args()
+
+    seed = int(time.time()) if args.seed == -1 else args.seed
+    use_cuda = torch.cuda.is_available() and args.use_cuda
+    dataset = args.dataset
+    num_synth = args.num_synth
+
     print(dataset.idx_to_class)
     for file in Path(dataset.root).glob('**/*.txt'):
         run_inference(str(file))
