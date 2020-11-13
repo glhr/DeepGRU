@@ -5,10 +5,10 @@ import time
 import torch
 import torch.nn as nn
 
-from model import DeepGRU
-from dataset.datafactory import DataFactory
-from utils.average_meter import AverageMeter  # Running average computation
-from utils.logger import log                  # Logging
+from DeepGRU.model import DeepGRU
+from DeepGRU.dataset.datafactory import DataFactory
+from DeepGRU.utils.average_meter import AverageMeter  # Running average computation
+from DeepGRU.utils.logger import log                  # Logging
 
 from pierogi.pierogi import Pierogi
 
