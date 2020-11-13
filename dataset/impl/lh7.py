@@ -68,6 +68,8 @@ class DatasetLH7(Dataset):
 
             # Determine sample properties
             subject, label, example = fname.replace(self.root, '').split('/')[-1].split("-")[0:3]
+            if label.startswith("wav"):
+                label = "waving"
             frame = fname.replace(self.root, '').split('/')[-1].split("-")[-1].split(".")[0]
             label = LABELS_INV[label]
 
