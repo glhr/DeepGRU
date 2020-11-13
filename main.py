@@ -11,6 +11,7 @@ from DeepGRU.utils.average_meter import AverageMeter  # Running average computat
 from DeepGRU.utils.logger import log                  # Logging
 
 from pierogi.pierogi import Pierogi
+from DeepGRU.utils.plotter import *
 
 # ----------------------------------------------------------------------------------------------------------------------
 parser = argparse.ArgumentParser(description='DeepGRU Training')
@@ -139,6 +140,7 @@ def run_fold(dataset, fold_idx, use_cuda):
                     test_meter.update(accuracy, curr_batch_size)
 
                 test_accuracy = test_meter.avg
+                add_to_history(loss_meter.avg, test_loss_meter.avg, train_meter.avg, test_meter.avg)
                 pierogi.plot_loss(epoch+1, 0, test_loss_meter.avg, "validation")
 
                 # Update best accuracies
@@ -152,7 +154,9 @@ def run_fold(dataset, fold_idx, use_cuda):
             if loss_meter.avg <= 1e-6 or best_test_accuracy == 100:
                 break
 
-        torch.save(model.state_dict(), f'save/{dataset}-{time.time()}.pt')
+        timestamp = time.time()
+        torch.save(model.state_dict(), f'save/{dataset}-{timestamp}.pt')
+        plt_result(timestamp)
 
     return best_test_accuracy
 
