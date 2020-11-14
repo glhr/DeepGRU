@@ -12,6 +12,7 @@ from DeepGRU.utils.logger import log                  # Logging
 
 from pierogi.pierogi import Pierogi
 from DeepGRU.utils.plotter import *
+import json
 
 # ----------------------------------------------------------------------------------------------------------------------
 parser = argparse.ArgumentParser(description='DeepGRU Training')
@@ -88,6 +89,8 @@ def run_fold(dataset, fold_idx, use_cuda):
     best_train_accuracy = 0
     best_test_accuracy = 0
 
+    timestamp = time.time()
+
     with Pierogi() as pierogi:
         pierogi.configure(nb_epochs=hyperparameters.num_epochs,
                           nb_batches_per_epoch=len(train_loader))
@@ -146,6 +149,7 @@ def run_fold(dataset, fold_idx, use_cuda):
                 # Update best accuracies
                 if best_test_accuracy < test_accuracy:
                     best_test_accuracy = test_accuracy
+                    torch.save(model.state_dict(), f'save/{dataset.name}-{timestamp}-fold{fold_idx}-epoch{epoch+1}.pt')
 
                 log('       [Avg Loss]          {loss.avg:.6f}'.format(loss=test_loss_meter))
                 log('       [Validation] Prec@1 {top1:.6f} Max {max:.6f}'
@@ -154,9 +158,9 @@ def run_fold(dataset, fold_idx, use_cuda):
             if loss_meter.avg <= 1e-6 or best_test_accuracy == 100:
                 break
 
-        timestamp = time.time()
-        torch.save(model.state_dict(), f'save/{dataset}-{fold}-{timestamp}.pt')
-        plt_result(f"{dataset}-{fold}-{timestamp}")
+        plt_result(f"{dataset.name}-{timestamp}-fold{fold_idx}")
+        with open(f'save/{dataset.name}-{timestamp}.txt', 'w') as fp:
+            print(f"{dataset}", file=fp)
 
     return best_test_accuracy
 

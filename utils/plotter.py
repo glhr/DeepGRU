@@ -26,7 +26,6 @@ def plt_result(filename="SC"):
     plt.ylabel('Loss')
     plt.ylim(0, np.max(history[:, 0:2]))
     plt.savefig(save_path / '{}_loss_curve.png'.format(filename))
-    plt.show()
     plt.clf()
     plt.close()
 
@@ -38,7 +37,6 @@ def plt_result(filename="SC"):
     plt.ylabel('Accuracy')
     plt.ylim(0, 100)
     plt.savefig(save_path / '{}_accuracy_curve.png'.format(filename))
-    plt.show()
     plt.clf()
     plt.close()
 
