@@ -155,8 +155,8 @@ def run_fold(dataset, fold_idx, use_cuda):
                 break
 
         timestamp = time.time()
-        torch.save(model.state_dict(), f'save/{dataset}-{timestamp}.pt')
-        plt_result(timestamp)
+        torch.save(model.state_dict(), f'save/{dataset}-{fold}-{timestamp}.pt')
+        plt_result(f"{dataset}-{fold}-{timestamp}")
 
     return best_test_accuracy
 
