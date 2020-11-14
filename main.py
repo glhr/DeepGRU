@@ -95,7 +95,7 @@ def run_fold(dataset, fold_idx, use_cuda):
         pierogi.configure(nb_epochs=hyperparameters.num_epochs,
                           nb_batches_per_epoch=len(train_loader))
         # Train the model
-        for epoch in range(hyperparameters.num_epochs):
+        for epoch in range(1):
             loss_meter = AverageMeter()
             train_meter = AverageMeter()
             test_meter = AverageMeter()
@@ -159,8 +159,9 @@ def run_fold(dataset, fold_idx, use_cuda):
                 break
 
         plt_result(f"{dataset.name}-{timestamp}-fold{fold_idx}")
-        with open(f'save/{dataset.name}-{timestamp}.txt', 'w') as fp:
-            print(f"{dataset}", file=fp)
+        
+    with open(f'save/{dataset.name}-{timestamp}.txt', 'w') as fp:
+        print(f"{dataset}", file=fp)
 
     return best_test_accuracy
 
