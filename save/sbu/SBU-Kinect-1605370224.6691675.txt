@@ -1,0 +1,10 @@
+Dataset: SBU-Kinect
+Classes: {0: 'Approaching', 1: 'Departing', 2: 'Exchanging', 3: 'Hugging', 4: 'Kicking', 5: 'Punching', 6: 'Pushing', 7: 'ShakingHands'}
+Num samples: 282
+Num synth: 1
+Learning rate: 0.001
+Batch size: 64
+Weight decay: 0
+Num epochs: 200
+
+
