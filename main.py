@@ -149,7 +149,7 @@ def run_fold(dataset, fold_idx, use_cuda):
                 # Update best accuracies
                 if best_test_accuracy < test_accuracy:
                     best_test_accuracy = test_accuracy
-                    torch.save(model.state_dict(), f'save/{dataset.name}-{timestamp}-fold{fold_idx}-epoch{epoch+1}.pt')
+                    torch.save(model.state_dict(), f'save/{dataset.name}-{timestamp}-fold{fold_idx}.pt')
 
                 log('       [Avg Loss]          {loss.avg:.6f}'.format(loss=test_loss_meter))
                 log('       [Validation] Prec@1 {top1:.6f} Max {max:.6f}'
