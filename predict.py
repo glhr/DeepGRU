@@ -33,7 +33,16 @@ def get_model(path="save/model.pt"):
     model_path = get_path_from_root(path)
     print(model_path)
     model = DeepGRU(dataset.num_features, dataset.num_classes)
-    model.load_state_dict(copy.deepcopy(torch.load(model_path,device)), strict=False)
+    state_dict = torch.load(model_path,device)
+    from collections import OrderedDict
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        if k.startswith('module.'):
+            k = k[7:]
+        new_state_dict[k] = v
+    state_dict = new_state_dict
+    # load params
+    model.load_state_dict(state_dict)
     if use_cuda:
         model = torch.nn.DataParallel(model).cuda()
     model.eval()
