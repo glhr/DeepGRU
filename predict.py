@@ -25,14 +25,15 @@ dataset = DataFactory.instantiate(dataset, num_synth)
 log.log_dataset(dataset)
 log("Random seed: " + str(seed))
 torch.manual_seed(seed)
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 hyperparameters = dataset.get_hyperparameter_set()
 
 def get_model(path="save/model.pt"):
-    model_path = get_path_from_root("save/model.pt")
+    model_path = get_path_from_root(path)
+    print(model_path)
     model = DeepGRU(dataset.num_features, dataset.num_classes)
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.load_state_dict(copy.deepcopy(torch.load(model_path,device)))
+    model.load_state_dict(copy.deepcopy(torch.load(model_path,device)), strict=False)
     if use_cuda:
         model = torch.nn.DataParallel(model).cuda()
     model.eval()
