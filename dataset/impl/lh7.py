@@ -27,7 +27,7 @@ class DatasetLH7(Dataset):
         return HyperParameterSet(learning_rate=0.001,
                                  batch_size=64,
                                  weight_decay=0,
-                                 num_epochs=100)
+                                 num_epochs=200)
 
     def _get_augmenters(self, random_seed):
         return [
