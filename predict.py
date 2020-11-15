@@ -62,7 +62,7 @@ def predict_single(batch, model, eval=False):
 
         out = "correct" if accuracy > 0 else "nope"
         print(f"--> Predicted {cls}, expected {dataset.idx_to_class[labels[0].item()]} -> {out}")
-        return accuracy
+        return {'predicted': cls, 'expected': dataset.idx_to_class[labels[0].item()]}
     else:
         print(f"--> Predicted {cls} (conf {conf})")
         return {'label': cls, 'conf': conf}

@@ -133,11 +133,12 @@ class Dataset(data.Dataset):
         """
         raise NotImplementedError
 
-    def get_data_loaders(self, fold_idx, shuffle=True, random_seed=1223, normalize=True):
+    def get_data_loaders(self, fold_idx, shuffle=True, random_seed=1223, normalize=True, batch_size=None):
         """
         Returns the torch.nn.data.DataLoader instances for training/testing on this dataset
         """
-        batch_size = self.get_hyperparameter_set().batch_size
+        if batch_size is None:
+            batch_size = self.get_hyperparameter_set().batch_size
 
         train_sampler, test_sampler = self._get_train_test_sampler(fold_idx, shuffle, random_seed, normalize)
 
@@ -159,8 +160,6 @@ class Dataset(data.Dataset):
         return train_loader, test_loader
 
     def get_sample_loaders(self, sample, random_seed=1223, normalize=True):
-        batch_size = self.get_hyperparameter_set().batch_size
-
         single_sampler = self._get_single_sampler(sample, random_seed, normalize)
 
         sample_loader = DataLoader(dataset=self,
