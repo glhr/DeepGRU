@@ -1,0 +1,10 @@
+Dataset: LH7
+Classes: {0: 'distracted', 1: 'handover', 2: 'waving', 3: 'working'}
+Num samples: 794
+Num synth: 1
+Learning rate: 0.001
+Batch size: 64
+Weight decay: 0
+Num epochs: 200
+
+
