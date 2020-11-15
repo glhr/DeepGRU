@@ -30,9 +30,18 @@ for fold in range(0,len(models)):
     num_classes = len(dataset.class_to_idx)
     for c in range(num_classes):
         cm.append([0] * num_classes)
+    correct = 0
+    print(len(test_loader))
     for batch in test_loader:
         prediction = predict_single(batch, model, eval=True)
-        cm[dataset.class_to_idx[prediction['expected']]][dataset.class_to_idx[prediction['predicted']]] += 1
+        expected = dataset.class_to_idx[prediction['expected']]
+        predicted = dataset.class_to_idx[prediction['predicted']]
+        cm[expected][predicted] += 1
+
+        if expected == predicted:
+            correct += 1
         # cm[0][2] += 1
+
+    print(f"Accuracy: {100*correct/len(test_loader):.2f}")
 
     plot_confusion_matrix(cm, classes=dataset.class_to_idx, filename=fold)
