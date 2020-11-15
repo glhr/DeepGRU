@@ -93,7 +93,7 @@ class DatasetLH7(Dataset):
 
             for fold_idx in range(FOLD_CNT):
 
-                if not random.randint(0,9):
+                if not random.randint(0,3):
                     # Add the instance as a TESTING instance to this fold
                     test_indices[fold_idx] += [s_idx]
 
