@@ -28,13 +28,17 @@ torch.manual_seed(seed)
 
 hyperparameters = dataset.get_hyperparameter_set()
 
-model_path = get_path_from_root("save/model.pt")
-model = DeepGRU(dataset.num_features, dataset.num_classes)
-device = "cuda" if torch.cuda.is_available() else "cpu"
-model.load_state_dict(copy.deepcopy(torch.load(model_path,device)))
-if use_cuda:
-    model = torch.nn.DataParallel(model).cuda()
-model.eval()
+def get_model(path="save/model.pt"):
+    model_path = get_path_from_root("save/model.pt")
+    model = DeepGRU(dataset.num_features, dataset.num_classes)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model.load_state_dict(copy.deepcopy(torch.load(model_path,device)))
+    if use_cuda:
+        model = torch.nn.DataParallel(model).cuda()
+    model.eval()
+    return model
+
+model = get_model()
 
 
 def predict_single(batch, model, eval=False):
