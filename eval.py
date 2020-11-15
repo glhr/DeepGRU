@@ -10,11 +10,11 @@ models = {
 }
 
 models = {
-    0: "save/lh7/3-fold cross-subject CV/LH7-1605454350.520024-fold0.pt",
-    1: "save/lh7/3-fold cross-subject CV/LH7-1605454595.2738004-fold1.pt",
-    2: "save/lh7/3-fold cross-subject CV/LH7-1605454838.9315948-fold2.pt",
-    3: "save/lh7/3-fold cross-subject CV/LH7-1605455107.765804-fold3.pt",
-    4: "save/lh7/3-fold cross-subject CV/LH7-1605455339.0769584-fold4.pt",
+    0: "save/lh7/5-fold random CV/LH7-1605454350.520024-fold0.pt",
+    1: "save/lh7/5-fold random CV/LH7-1605454595.2738004-fold1.pt",
+    2: "save/lh7/5-fold random CV/LH7-1605454838.9315948-fold2.pt",
+    3: "save/lh7/5-fold random CV/LH7-1605455107.765804-fold3.pt",
+    4: "save/lh7/5-fold random CV/LH7-1605455339.0769584-fold4.pt",
 }
 
 for fold in range(0,len(models)):
