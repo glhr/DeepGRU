@@ -39,7 +39,6 @@ class DatasetLH7(Dataset):
         """
         Loads the LH7 dataset.
         """
-
         # Make sure the dataset exists
         self._check_dataset()
 
@@ -91,8 +90,15 @@ class DatasetLH7(Dataset):
             # Add the index to train/test indices for each fold
             s_idx = len(samples) - 1
 
+            fold_subject = {
+                0: 'gala',
+                1: 'jan',
+                2: 'tune'
+            }
+
             for fold_idx in range(FOLD_CNT):
 
+                # if subject == fold_subject[fold_idx]:
                 if not random.randint(0,3):
                     # Add the instance as a TESTING instance to this fold
                     test_indices[fold_idx] += [s_idx]

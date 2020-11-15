@@ -65,12 +65,12 @@ def plot_confusion_matrix(cm, classes,
 
     print(cm)
 
-    plt.figure(figsize=(6,6))
+    plt.figure()
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    plt.title(title)
+    # plt.title(title)
     # plt.colorbar()
     tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes, rotation=90)
+    plt.xticks(tick_marks, classes, rotation=45)
     plt.yticks(tick_marks, classes)
 
     fmt = '.2f' if normalize else 'd'
@@ -79,7 +79,8 @@ def plot_confusion_matrix(cm, classes,
         plt.text(j, i, format(cm[i, j], fmt),
                  horizontalalignment="center",
                  color="white" if cm[i, j] > thresh else "black")
+    plt.tight_layout()
 
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
+    # plt.ylabel('True label')
+    # plt.xlabel('Predicted label')
     plt.savefig(save_path / "{}_confusion matrix.png".format(filename))

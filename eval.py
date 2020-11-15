@@ -9,7 +9,15 @@ models = {
     2: "save/lh7/3-fold cross-subject CV/LH7-1605459149.0506065-fold2.pt",
 }
 
-for fold in range(0,3):
+models = {
+    0: "save/lh7/3-fold cross-subject CV/LH7-1605454350.520024-fold0.pt",
+    1: "save/lh7/3-fold cross-subject CV/LH7-1605454595.2738004-fold1.pt",
+    2: "save/lh7/3-fold cross-subject CV/LH7-1605454838.9315948-fold2.pt",
+    3: "save/lh7/3-fold cross-subject CV/LH7-1605455107.765804-fold3.pt",
+    4: "save/lh7/3-fold cross-subject CV/LH7-1605455339.0769584-fold4.pt",
+}
+
+for fold in range(0,len(models)):
     train_loader, test_loader = dataset.get_data_loaders(fold,
                                                          shuffle=True,
                                                          random_seed=1570254494+fold,
@@ -18,12 +26,13 @@ for fold in range(0,3):
 
     model = get_model(path=models[fold])
 
-
     cm = []
-    for c in range(4):
-        cm.append([0] * 4)
+    num_classes = len(dataset.class_to_idx)
+    for c in range(num_classes):
+        cm.append([0] * num_classes)
     for batch in test_loader:
         prediction = predict_single(batch, model, eval=True)
-        cm[dataset.class_to_idx[prediction['predicted']]][dataset.class_to_idx[prediction['expected']]] += 1
+        cm[dataset.class_to_idx[prediction['expected']]][dataset.class_to_idx[prediction['predicted']]] += 1
+        # cm[0][2] += 1
 
     plot_confusion_matrix(cm, classes=dataset.class_to_idx, filename=fold)
