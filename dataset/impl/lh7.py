@@ -21,7 +21,7 @@ class DatasetLH7(Dataset):
         self.underlying_dataset = self._load_lh7_interaction(verbose=False)
         self.num_features = 27  # 3D world coordinates joints of 1 person (9 joints x 3 dimensions).
                                 # Each row is one frame.
-        self.num_folds = 3     # This dataset has 3 folds
+        self.num_folds = 5     # This dataset has 3 folds
 
     def get_hyperparameter_set(self):
         return HyperParameterSet(learning_rate=0.001,
@@ -52,7 +52,7 @@ class DatasetLH7(Dataset):
         LABELS_INV = dict((v, k) for k, v in LABELS.items())
 
         # Number of folds
-        FOLD_CNT = 3
+        FOLD_CNT = 5
 
         # Number of joints
         JOINT_CNT = 9
@@ -93,7 +93,7 @@ class DatasetLH7(Dataset):
 
             for fold_idx in range(FOLD_CNT):
 
-                if not random.randint(0,4):
+                if not random.randint(0,9):
                     # Add the instance as a TESTING instance to this fold
                     test_indices[fold_idx] += [s_idx]
 
