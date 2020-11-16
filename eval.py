@@ -20,6 +20,14 @@ models = {
 
 confidences_correct = []
 confidences_incorrect = []
+
+results = {
+            'model': {
+                "true_labels": [],
+                "pred_labels": [],
+                "confidences": []
+                }
+            }
     
 for fold in range(0,len(models)):
     train_loader, test_loader = dataset.get_data_loaders(fold,
@@ -37,6 +45,7 @@ for fold in range(0,len(models)):
     correct = 0
 
     filename = models[fold].split("/")[-1].split(".pt")[0]
+
     
     print(len(test_loader))
     for batch in test_loader:
@@ -44,6 +53,10 @@ for fold in range(0,len(models)):
         expected = dataset.class_to_idx[prediction['expected']]
         predicted = dataset.class_to_idx[prediction['predicted']]
         cm[expected][predicted] += 1
+        
+        results['model']["true_labels"].append(expected)
+        results['model']["pred_labels"].append(predicted)
+        results['model']["confidences"].append(prediction['conf'])
 
         if expected == predicted:
             correct += 1
@@ -58,3 +71,7 @@ for fold in range(0,len(models)):
     
 
 plot_confidence_histo(confidences_correct, confidences_incorrect, filename)
+
+results['model'] = {k:np.array(v) for k,v in results['model'].items()}
+
+reliability_diagrams(results, num_cols = len(results))
