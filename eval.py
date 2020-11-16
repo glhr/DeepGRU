@@ -2,6 +2,7 @@
 from DeepGRU.predict import dataset, get_model, predict_single
 from DeepGRU.utils.plotter import *
 import time
+import matplotlib.pyplot as plt
 
 models = {
     0: "save/lh7/3-fold cross-subject CV/LH7-1605455681.0777423-fold0.pt",
@@ -17,6 +18,9 @@ models = {
     4: "save/lh7/5-fold random CV/LH7-1605455339.0769584-fold4.pt",
 }
 
+confidences_correct = []
+confidences_incorrect = []
+    
 for fold in range(0,len(models)):
     train_loader, test_loader = dataset.get_data_loaders(fold,
                                                          shuffle=True,
@@ -31,6 +35,9 @@ for fold in range(0,len(models)):
     for c in range(num_classes):
         cm.append([0] * num_classes)
     correct = 0
+
+    filename = models[fold].split("/")[-1].split(".pt")[0]
+    
     print(len(test_loader))
     for batch in test_loader:
         prediction = predict_single(batch, model, eval=True)
@@ -40,8 +47,14 @@ for fold in range(0,len(models)):
 
         if expected == predicted:
             correct += 1
+            confidences_correct.append(prediction['conf'])
+        else:
+            confidences_incorrect.append(prediction['conf'])
         # cm[0][2] += 1
 
     print(f"Accuracy: {100*correct/len(test_loader):.2f}")
 
-    plot_confusion_matrix(cm, classes=dataset.class_to_idx, filename=fold)
+    plot_confusion_matrix(cm, classes=dataset.class_to_idx, filename=filename)
+    
+
+plot_confidence_histo(confidences_correct, confidences_incorrect, filename)

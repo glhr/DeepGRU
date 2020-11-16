@@ -45,7 +45,25 @@ def plt_result(filename="SC"):
     history = []
 
 
-
+def plot_confidence_histo(confidences_correct, confidences_incorrect, filename=time.time()):
+    
+    hist, bins = np.histogram(confidences_correct, bins=20, range=(0,1))
+    width = (bins[1] - bins[0])
+    center = (bins[:-1] + bins[1:]) / 2
+    
+    plt.clf()
+    plt.bar(center, hist, align='center', color='g', width=width)
+    plt.xlim(0,1)
+    plt.tight_layout()
+    plt.savefig(save_path / f"{filename}-confhist-correct.png")
+    
+    hist, bins = np.histogram(confidences_incorrect, bins=20, range=(0,1))
+    plt.clf()
+    plt.bar(center, hist, align='center', color='r', width=width)
+    plt.xlim(0,1)
+    plt.tight_layout()
+    plt.savefig(save_path / f"{filename}-confhist-incorrect.png")
+    
 
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
