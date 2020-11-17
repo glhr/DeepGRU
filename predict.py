@@ -59,9 +59,10 @@ def predict_single(batch, model, eval=False):
 
     if use_cuda:
         examples = examples.cuda()
+        labels = labels.cuda()
 
     # Forward and loss computation
-    output = nn.functional.softmax(model(examples, lengths),dim=1)
+    output = nn.functional.softmax(model(examples, lengths),dim=1).to(device)
 
     # Compute the accuracy
     ret, predicted = torch.max(output.data, 1)
