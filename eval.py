@@ -28,7 +28,7 @@ results = {
                 "confidences": []
                 }
             }
-    
+
 for fold in range(0,len(models)):
     train_loader, test_loader = dataset.get_data_loaders(fold,
                                                          shuffle=True,
@@ -46,14 +46,14 @@ for fold in range(0,len(models)):
 
     filename = models[fold].split("/")[-1].split(".pt")[0]
 
-    
+
     print(len(test_loader))
     for batch in test_loader:
         prediction = predict_single(batch, model, eval=True)
         expected = dataset.class_to_idx[prediction['expected']]
         predicted = dataset.class_to_idx[prediction['predicted']]
         cm[expected][predicted] += 1
-        
+
         results['model']["true_labels"].append(expected)
         results['model']["pred_labels"].append(predicted)
         results['model']["confidences"].append(prediction['conf'])
@@ -68,10 +68,10 @@ for fold in range(0,len(models)):
     print(f"Accuracy: {100*correct/len(test_loader):.2f}")
 
     plot_confusion_matrix(cm, classes=dataset.class_to_idx, filename=filename)
-    
+
 
 plot_confidence_histo(confidences_correct, confidences_incorrect, filename)
 
 results['model'] = {k:np.array(v) for k,v in results['model'].items()}
 
-reliability_diagrams(results, num_cols = len(results))
+reliability_diagrams(results, num_cols = len(results), filename=filename)

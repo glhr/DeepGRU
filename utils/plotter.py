@@ -46,28 +46,28 @@ def plt_result(filename="SC"):
 
 
 def plot_confidence_histo(confidences_correct, confidences_incorrect, filename=time.time()):
-    
+
     hist, bins = np.histogram(confidences_correct, bins=50, range=(0,1))
     width = (bins[1] - bins[0])
     center = (bins[:-1] + bins[1:]) / 2
-    
+
     plt.clf()
     plt.bar(center, hist, align='center', color='g', width=width)
     plt.xlim(0,1)
     plt.tight_layout()
     plt.savefig(save_path / f"{filename}-confhist-correct.png")
-    
+
     hist, bins = np.histogram(confidences_incorrect, bins=50, range=(0,1))
     plt.clf()
     plt.bar(center, hist, align='center', color='r', width=width)
     plt.xlim(0,1)
     plt.tight_layout()
     plt.savefig(save_path / f"{filename}-confhist-incorrect.png")
-    
+
 
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
-                          title='Confusion matrix',
+                          # title='Confusion matrix',
                           cmap=plt.cm.Blues,
                           filename=time.time()):
     """
@@ -104,7 +104,9 @@ def plot_confusion_matrix(cm, classes,
     plt.savefig(save_path / "{}_confusion matrix.png".format(filename))
 
 
+################
 # code below adapted from https://github.com/hollance/reliability-diagrams/blob/master/reliability_diagrams.py
+################
 
 import os
 import numpy as np
@@ -158,9 +160,9 @@ def compute_calibration(true_labels, pred_labels, confidences, num_bins=10):
     ece = np.sum(gaps * bin_counts) / np.sum(bin_counts)
     mce = np.max(gaps)
 
-    return { "accuracies": bin_accuracies, 
-             "confidences": bin_confidences, 
-             "counts": bin_counts, 
+    return { "accuracies": bin_accuracies,
+             "confidences": bin_confidences,
+             "counts": bin_counts,
              "bins": bins,
              "avg_accuracy": avg_acc,
              "avg_confidence": avg_conf,
@@ -168,11 +170,11 @@ def compute_calibration(true_labels, pred_labels, confidences, num_bins=10):
              "max_calibration_error": mce }
 
 
-def _reliability_diagram_subplot(ax, bin_data, 
-                                 draw_ece=True, 
+def _reliability_diagram_subplot(ax, bin_data,
+                                 draw_ece=True,
                                  draw_bin_importance=False,
-                                 title="Reliability Diagram", 
-                                 xlabel="Confidence", 
+                                 # title="Reliability Diagram",
+                                 xlabel="Confidence",
                                  ylabel="Expected Accuracy"):
     """Draws a reliability diagram into a subplot."""
     accuracies = bin_data["accuracies"]
@@ -200,7 +202,7 @@ def _reliability_diagram_subplot(ax, bin_data,
     colors[:, 2] = 60 / 255.
     colors[:, 3] = alphas
 
-    gap_plt = ax.bar(positions, np.abs(accuracies - confidences), 
+    gap_plt = ax.bar(positions, np.abs(accuracies - confidences),
                      bottom=np.minimum(accuracies, confidences), width=widths,
                      edgecolor=colors, color=colors, linewidth=1, label="Gap")
 
@@ -210,10 +212,10 @@ def _reliability_diagram_subplot(ax, bin_data,
 
     ax.set_aspect("equal")
     ax.plot([0,1], [0,1], linestyle = "--", color="gray")
-    
+
     if draw_ece:
         ece = (bin_data["expected_calibration_error"] * 100)
-        ax.text(0.98, 0.02, "ECE=%.2f" % ece, color="black", 
+        ax.text(0.98, 0.02, "ECE=%.2f" % ece, color="black",
                 ha="right", va="bottom", transform=ax.transAxes)
 
     ax.set_xlim(0, 1)
@@ -227,9 +229,9 @@ def _reliability_diagram_subplot(ax, bin_data,
     ax.legend(handles=[gap_plt, acc_plt])
 
 
-def _confidence_histogram_subplot(ax, bin_data, 
+def _confidence_histogram_subplot(ax, bin_data,
                                   draw_averages=True,
-                                  title="Examples per bin", 
+                                  # title="Examples per bin",
                                   xlabel="Confidence",
                                   ylabel="Count"):
     """Draws a confidence histogram into a subplot."""
@@ -240,34 +242,34 @@ def _confidence_histogram_subplot(ax, bin_data,
     positions = bins[:-1] + bin_size/2.0
 
     ax.bar(positions, counts, width=bin_size * 0.9)
-   
+
     ax.set_xlim(0, 1)
     ax.set_title(title)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
     if draw_averages:
-        acc_plt = ax.axvline(x=bin_data["avg_accuracy"], ls="solid", lw=3, 
+        acc_plt = ax.axvline(x=bin_data["avg_accuracy"], ls="solid", lw=3,
                              c="black", label="Accuracy")
-        conf_plt = ax.axvline(x=bin_data["avg_confidence"], ls="dotted", lw=3, 
+        conf_plt = ax.axvline(x=bin_data["avg_confidence"], ls="dotted", lw=3,
                               c="#444", label="Avg. confidence")
         ax.legend(handles=[acc_plt, conf_plt])
 
 
-def _reliability_diagram_combined(bin_data, 
-                                  draw_ece, draw_bin_importance, draw_averages, 
+def _reliability_diagram_combined(bin_data,
+                                  draw_ece, draw_bin_importance, draw_averages,
                                   title, figsize, dpi, return_fig):
     """Draws a reliability diagram and confidence histogram using the output
     from compute_calibration()."""
     figsize = (figsize[0], figsize[0] * 1.4)
 
-    fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=figsize, dpi=dpi, 
+    fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=figsize, dpi=dpi,
                            gridspec_kw={"height_ratios": [4, 1]})
 
     plt.tight_layout()
     plt.subplots_adjust(hspace=-0.1)
 
-    _reliability_diagram_subplot(ax[0], bin_data, draw_ece, draw_bin_importance, 
+    _reliability_diagram_subplot(ax[0], bin_data, draw_ece, draw_bin_importance,
                                  title=title, xlabel="")
 
     # Draw the confidence histogram upside down.
@@ -278,33 +280,34 @@ def _reliability_diagram_combined(bin_data,
 
     # Also negate the ticks for the upside-down histogram.
     new_ticks = np.abs(ax[1].get_yticks()).astype(np.int)
-    ax[1].set_yticklabels(new_ticks)    
+    ax[1].set_yticklabels(new_ticks)
 
-    plt.show()
+    # plt.show()
+    plt.savefig(save_path / f"{filename}-reliability-diagram-combined.png")
 
     if return_fig: return fig
 
 
 def reliability_diagram(true_labels, pred_labels, confidences, num_bins=10,
-                        draw_ece=True, draw_bin_importance=False, 
-                        draw_averages=True, title="Reliability Diagram", 
+                        draw_ece=True, draw_bin_importance=False,
+                        draw_averages=True, title="Reliability Diagram",
                         figsize=(6, 6), dpi=72, return_fig=False):
     """Draws a reliability diagram and confidence histogram in a single plot.
-    
+
     First, the model's predictions are divided up into bins based on their
     confidence scores.
-    The reliability diagram shows the gap between average accuracy and average 
+    The reliability diagram shows the gap between average accuracy and average
     confidence in each bin. These are the red bars.
     The black line is the accuracy, the other end of the bar is the confidence.
     Ideally, there is no gap and the black line is on the dotted diagonal.
     In that case, the model is properly calibrated and we can interpret the
     confidence scores as probabilities.
-    The confidence histogram visualizes how many examples are in each bin. 
+    The confidence histogram visualizes how many examples are in each bin.
     This is useful for judging how much each bin contributes to the calibration
     error.
-    The confidence histogram also shows the overall accuracy and confidence. 
+    The confidence histogram also shows the overall accuracy and confidence.
     The closer these two lines are together, the better the calibration.
-    
+
     The ECE or Expected Calibration Error is a summary statistic that gives the
     difference in expectation between confidence and accuracy. In other words,
     it's a weighted average of the gaps across all bins. A lower ECE is better.
@@ -325,15 +328,16 @@ def reliability_diagram(true_labels, pred_labels, confidences, num_bins=10,
     """
     bin_data = compute_calibration(true_labels, pred_labels, confidences, num_bins)
     return _reliability_diagram_combined(bin_data, draw_ece, draw_bin_importance,
-                                         draw_averages, title, figsize=figsize, 
+                                         draw_averages, title, figsize=figsize,
                                          dpi=dpi, return_fig=return_fig)
 
 
 def reliability_diagrams(results, num_bins=10,
-                         draw_ece=True, draw_bin_importance=False, 
-                         num_cols=4, dpi=72, return_fig=False):
+                         draw_ece=True, draw_bin_importance=False,
+                         num_cols=4, dpi=288, return_fig=False,
+                         filename=time.time()):
     """Draws reliability diagrams for one or more models.
-    
+
     Arguments:
         results: dictionary where the key is the model name and the value is
             a dictionary containing the true labels, predicated labels, and
@@ -350,47 +354,48 @@ def reliability_diagrams(results, num_bins=10,
     nrows = (len(results) + ncols - 1) // ncols
     figsize = (ncols * 4, nrows * 4)
 
-    fig, ax = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True, 
+    fig, ax = plt.subplots(nrows=nrows, ncols=ncols, sharex=True, sharey=True,
                            figsize=figsize, dpi=dpi, constrained_layout=True)
 
     for i, (plot_name, data) in enumerate(results.items()):
         y_true = data["true_labels"]
         y_pred = data["pred_labels"]
         y_conf = data["confidences"]
-        
+
         bin_data = compute_calibration(y_true, y_pred, y_conf, num_bins)
-        
+
         row = i // ncols
         col = i % ncols
         try:
-            _reliability_diagram_subplot(ax[row, col], bin_data, draw_ece, 
-                                         draw_bin_importance, 
-                                         title="\n".join(plot_name.split()),
+            _reliability_diagram_subplot(ax[row, col], bin_data, draw_ece,
+                                         draw_bin_importance,
+                                         # title="\n".join(plot_name.split()),
                                          xlabel="Confidence" if row == nrows - 1 else "",
                                          ylabel="Expected Accuracy" if col == 0 else "")
         except IndexError:
-            _reliability_diagram_subplot(ax[col], bin_data, draw_ece, 
-                                         draw_bin_importance, 
-                                         title="\n".join(plot_name.split()),
+            _reliability_diagram_subplot(ax[col], bin_data, draw_ece,
+                                         draw_bin_importance,
+                                         # title="\n".join(plot_name.split()),
                                          xlabel="Confidence" if row == nrows - 1 else "",
-                                         ylabel="Expected Accuracy" if col == 0 else "")   
+                                         ylabel="Expected Accuracy" if col == 0 else "")
         except TypeError:
-            _reliability_diagram_subplot(ax, bin_data, draw_ece, 
-                                         draw_bin_importance, 
-                                         title="\n".join(plot_name.split()),
+            _reliability_diagram_subplot(ax, bin_data, draw_ece,
+                                         draw_bin_importance,
+                                         # title="\n".join(plot_name.split()),
                                          xlabel="Confidence" if row == nrows - 1 else "",
-                                         ylabel="Expected Accuracy" if col == 0 else "")   
+                                         ylabel="Expected Accuracy" if col == 0 else "")
 
     for i in range(i + 1, nrows * ncols):
         row = i // ncols
-        col = i % ncols        
+        col = i % ncols
         try:
             ax[row, col].axis("off")
         except IndexError:
             ax[col].axis("off")
         except TypeError:
             ax.axis("off")
-        
-    plt.show()
+
+    # plt.show()
+    plt.savefig(save_path / f"{filename}-reliability-diagrams.png")
 
     if return_fig: return fig
