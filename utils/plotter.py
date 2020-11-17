@@ -173,7 +173,7 @@ def compute_calibration(true_labels, pred_labels, confidences, num_bins=10):
 def _reliability_diagram_subplot(ax, bin_data,
                                  draw_ece=True,
                                  draw_bin_importance=False,
-                                 # title="Reliability Diagram",
+                                 title="Reliability Diagram",
                                  xlabel="Confidence",
                                  ylabel="Expected Accuracy"):
     """Draws a reliability diagram into a subplot."""
@@ -222,7 +222,7 @@ def _reliability_diagram_subplot(ax, bin_data,
     ax.set_ylim(0, 1)
     #ax.set_xticks(bins)
 
-    ax.set_title(title)
+    #ax.set_title(title)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
