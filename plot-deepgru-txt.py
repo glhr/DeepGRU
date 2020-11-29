@@ -3,6 +3,15 @@ import cv2
 import glob
 import imageio
 
+connections = [
+    (0,1),
+    (0,2),
+    (3,5),
+    (4,6),
+    (5,7),
+    (6,8)
+]
+
 for txtfile in glob.glob("data/LH7/**/*.txt"):
     fname = txtfile.split("/")[-1].split(".")[0]
     folder = "/".join(txtfile.split("/")[:-1])
@@ -40,14 +49,27 @@ for txtfile in glob.glob("data/LH7/**/*.txt"):
             image = np.ones((int(w_y*100),int(w_x*100),3))*255
             print(min_x, max_x, w_x)
             print(min_y, max_y, w_y)
+            
+            pnts = []
+            
             for pnt in li:
+                x = int((pnt[0]-min_x)*100)
+                y = int((pnt[1]-min_y)*100)
+                print(x,y)
                 if pnt[0] != 0 or pnt[1] != 0:
-                    x = int((pnt[0]-min_x)*100)
-                    y = int((pnt[1]-min_y)*100)
-                    print(x,y)
-               
                     image = cv2.circle(image, (x,y), radius=2, color=(0, 0, 255), thickness=-1)
             # cv2.imwrite(f"{fname}-{cnt}.png",image)
+            
+                    pnts.append([x,y])
+                else:
+                    pnts.append([-1,-1])
+                
+            for conn in connections:
+                x1, y1 = pnts[conn[0]]
+                x2, y2 = pnts[conn[1]]
+                if not -1 in [x1, x2, y1, y2]:
+                    image = cv2.line(image, (x1, y1), (x2, y2), (0, 255, 0), thickness=2)
+            
             images.append(image.astype(np.uint8))
             
 
